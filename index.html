@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Braces Log - 牙套紀錄器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-teal-main { background-color: #0D9488; }
+        .text-teal-main { color: #0D9488; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 pb-12">
+
+    <!-- Header -->
+    <header class="bg-teal-600 text-white p-4 text-center font-black text-xl tracking-widest shadow-md sticky top-0 z-40">
+        🦷 牙套矯正紀錄器
+    </header>
+
+    <main class="max-w-md mx-auto p-3 space-y-4">
+
+        <!-- 區塊 1：費用與次數統計 -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center">
+                <div class="text-xs text-gray-500 font-bold mb-1">累積總花費</div>
+                <div class="text-xl font-black text-teal-600" id="totalCost">NT$ 0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center">
+                <div class="text-xs text-gray-500 font-bold mb-1">總回診次數</div>
+                <div class="text-xl font-black text-gray-800"><span id="totalVisits">0</span> 次</div>
+            </div>
+        </div>
+
+        <!-- 區塊 2：新增紀錄表單 -->
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 space-y-3">
+            <h3 class="font-bold text-sm text-gray-800 border-b pb-2 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-teal-600"></span> 新增看診紀錄
+            </h3>
+
+            <form id="visitForm" class="space-y-3 text-xs">
+                
+                <!-- 日期與基本費用 -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">回診日期 <span class="text-red-500">*</span></label>
+                        <input type="date" id="visitDate" class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">常規分期費用 (元)</label>
+                        <input type="number" id="baseFee" value="3000" placeholder="3000" class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none">
+                    </div>
+                </div>
+
+                <!-- 補蛀牙/開藥與額外費用 -->
+                <div class="p-3 bg-teal-50 border border-teal-100 rounded-lg space-y-2">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="hasCavity" class="w-4 h-4 text-teal-600 rounded focus:ring-teal-500">
+                        <span class="font-bold text-teal-900">當次有開藥 / 補蛀牙</span>
+                    </label>
+
+                    <div id="cavityFeeBox" class="hidden pl-6 pt-1">
+                        <label class="block font-bold text-teal-800 mb-1">額外掛號 / 藥費 (元)</label>
+                        <input type="number" id="extraFee" value="200" placeholder="例如：200" class="w-full border rounded-lg p-2 bg-white outline-none">
+                    </div>
+                </div>
+
+                <!-- 診療項目 -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-bold text-gray-600">診療項目</label>
+                        <!-- 快速選擇標籤 -->
+                        <div class="flex gap-1">
+                            <button type="button" id="btnQuickAdjust" class="bg-teal-100 text-teal-800 text-[11px] font-bold px-2 py-0.5 rounded-md hover:bg-teal-200 transition">
+                                ＋ 調整
+                            </button>
+                        </div>
+                    </div>
+                    <input type="text" id="treatments" placeholder="例：調整、換橡皮筋、洗牙" class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none">
+                </div>
+
+                <!-- 備註說明 -->
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">備註 / 醫囑紀錄</label>
+                    <textarea id="notes" rows="2" placeholder="例：下排右側橡皮筋要每天更換、注意左後方清潔..." class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none resize-none"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-teal-600 text-white font-bold py-3 rounded-xl hover:bg-teal-700 transition shadow">
+                    儲存看診紀錄
+                </button>
+            </form>
+        </div>
+
+        <!-- 區塊 3：歷程時間軸紀錄 -->
+        <div class="space-y-2">
+            <h3 class="font-bold text-sm text-gray-700 px-1">看診歷史紀錄</h3>
+            <div id="historyList" class="space-y-3">
+                <div class="text-center py-8 text-gray-400 text-xs">載入紀錄中...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 編輯 Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl p-4 w-full max-w-sm space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-sm text-gray-800">編輯紀錄</h3>
+                <button id="closeEditModal" class="text-gray-400 hover:text-black font-bold">✕</button>
+            </div>
+            <form id="editForm" class="space-y-3 text-xs">
+                <input type="hidden" id="editRecordId">
+                <div>
+                    <label class="font-bold text-gray-600">回診日期</label>
+                    <input type="date" id="editDate" class="w-full border rounded-lg p-2 mt-1" required>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="font-bold text-gray-600">常規費用 (元)</label>
+                        <input type="number" id="editBaseFee" class="w-full border rounded-lg p-2 mt-1">
+                    </div>
+                    <div>
+                        <label class="font-bold text-gray-600">額外費用 (元)</label>
+                        <input type="number" id="editExtraFee" class="w-full border rounded-lg p-2 mt-1">
+                    </div>
+                </div>
+                <div>
+                    <label class="font-bold text-gray-600">診療項目</label>
+                    <input type="text" id="editTreatments" class="w-full border rounded-lg p-2 mt-1">
+                </div>
+                <div>
+                    <label class="font-bold text-gray-600">備註</label>
+                    <textarea id="editNotes" rows="2" class="w-full border rounded-lg p-2 mt-1 resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-teal-600 text-white font-bold py-2.5 rounded-lg text-sm shadow">更新資料</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Firebase 配置 (與衣櫥專案共用同一專案，分區儲存)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwF163OMp-1sPCV9xHsORYemEy97YPCkI",
+            authDomain: "mywardrobe-c7e74.firebaseapp.com",
+            databaseURL: "https://mywardrobe-c7e74-default-rtdb.firebaseio.com",
+            projectId: "mywardrobe-c7e74",
+            storageBucket: "mywardrobe-c7e74.firebasestorage.app",
+            messagingSenderId: "629621991380",
+            appId: "1:629621991380:web:5ab788261e3ec50a79d841"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        // 設定專屬於牙套紀錄的資料節點
+        const bracesRef = ref(db, 'braces_records');
+
+        let allRecords = {};
+
+        // 設定預設日期為今天
+        document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
+
+        // 快速選擇按鈕功能：點擊後自動寫入「調整」
+        const treatmentsInput = document.getElementById('treatments');
+        document.getElementById('btnQuickAdjust').addEventListener('click', () => {
+            const currentVal = treatmentsInput.value.trim();
+            if (!currentVal) {
+                treatmentsInput.value = '調整';
+            } else if (!currentVal.includes('調整')) {
+                treatmentsInput.value = '調整、' + currentVal;
+            }
+            treatmentsInput.focus();
+        });
+
+        // 勾選開藥/補蛀牙切換金額輸入框
+        const hasCavityCheckbox = document.getElementById('hasCavity');
+        const cavityFeeBox = document.getElementById('cavityFeeBox');
+        hasCavityCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                cavityFeeBox.classList.remove('hidden');
+            } else {
+                cavityFeeBox.classList.add('hidden');
+            }
+        });
+
+        // 監聽 Firebase 資料
+        onValue(bracesRef, (snapshot) => {
+            allRecords = snapshot.val() || {};
+            renderHistory();
+        });
+
+        // 渲染歷程與統計
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+
+            const keys = Object.keys(allRecords);
+            
+            if (keys.length === 0) {
+                historyList.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">目前還沒有紀錄，填寫上方表單開始紀錄吧！</div>`;
+                document.getElementById('totalCost').innerText = 'NT$ 0';
+                document.getElementById('totalVisits').innerText = '0';
+                return;
+            }
+
+            // 依據日期從新到舊排序
+            keys.sort((a, b) => new Date(allRecords[b].date) - new Date(allRecords[a].date));
+
+            let totalSpent = 0;
+
+            keys.forEach((id) => {
+                const item = allRecords[id];
+                const base = Number(item.baseFee) || 0;
+                const extra = item.hasCavity ? (Number(item.extraFee) || 0) : 0;
+                const totalFee = base + extra;
+                totalSpent += totalFee;
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm space-y-2 relative";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-black text-gray-800">${item.date}</span>
+                            ${item.hasCavity ? `<span class="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">💊 開藥 / 補蛀牙</span>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-black text-teal-600">NT$ ${totalFee.toLocaleString()}</span>
+                            ${item.hasCavity ? `<div class="text-[9px] text-gray-400">(含掛號/藥費 $${extra})</div>` : ''}
+                        </div>
+                    </div>
+
+                    ${item.treatments ? `<div class="text-xs text-gray-700 font-bold bg-gray-50 p-2 rounded-lg">診治：${item.treatments}</div>` : ''}
+                    ${item.notes ? `<div class="text-xs text-gray-500 italic pl-1">備註：${item.notes}</div>` : ''}
+
+                    <div class="flex justify-end space-x-3 text-[11px] pt-1 border-t border-gray-100">
+                        <button data-id="${id}" class="edit-btn text-gray-500 hover:text-black font-bold">編輯</button>
+                        <button data-id="${id}" class="delete-btn text-red-500 hover:underline">刪除</button>
+                    </div>
+                `;
+
+                historyList.appendChild(card);
+            });
+
+            // 更新統計金額與次數
+            document.getElementById('totalCost').innerText = `NT$ ${totalSpent.toLocaleString()}`;
+            document.getElementById('totalVisits').innerText = keys.length;
+
+            // 綁定編輯與刪除事件
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => openEditModal(e.target.getAttribute('data-id')));
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    if (confirm('確定要刪除這筆看診紀錄嗎？')) {
+                        remove(ref(db, `braces_records/${id}`));
+                    }
+                });
+            });
+        }
+
+        // 送出新增紀錄
+        document.getElementById('visitForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const date = document.getElementById('visitDate').value;
+            const baseFee = document.getElementById('baseFee').value || 0;
+            const hasCavity = document.getElementById('hasCavity').checked;
+            const extraFee = hasCavity ? (document.getElementById('extraFee').value || 0) : 0;
+            const treatments = document.getElementById('treatments').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+
+            const newRecord = {
+                date,
+                baseFee,
+                hasCavity,
+                extraFee,
+                treatments,
+                notes,
+                createdAt: Date.now()
+            };
+
+            push(bracesRef, newRecord).then(() => {
+                // 重置部分表單欄位
+                document.getElementById('treatments').value = '';
+                document.getElementById('notes').value = '';
+                document.getElementById('hasCavity').checked = false;
+                cavityFeeBox.classList.add('hidden');
+                document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
+            });
+        });
+
+        // 編輯 Modal 邏輯
+        function openEditModal(id) {
+            const item = allRecords[id];
+            if (!item) return;
+
+            document.getElementById('editRecordId').value = id;
+            document.getElementById('editDate').value = item.date;
+            document.getElementById('editBaseFee').value = item.baseFee || 3000;
+            document.getElementById('editExtraFee').value = item.extraFee || 0;
+            document.getElementById('editTreatments').value = item.treatments || '';
+            document.getElementById('editNotes').value = item.notes || '';
+
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        document.getElementById('closeEditModal').addEventListener('click', () => {
+            document.getElementById('editModal').classList.add('hidden');
+        });
+
+        document.getElementById('editForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('editRecordId').value;
+            const extraFeeVal = Number(document.getElementById('editExtraFee').value) || 0;
+
+            const updatedData = {
+                date: document.getElementById('editDate').value,
+                baseFee: document.getElementById('editBaseFee').value,
+                hasCavity: extraFeeVal > 0,
+                extraFee: extraFeeVal,
+                treatments: document.getElementById('editTreatments').value.trim(),
+                notes: document.getElementById('editNotes').value.trim()
+            };
+
+            update(ref(db, `braces_records/${id}`), updatedData).then(() => {
+                document.getElementById('editModal').classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
