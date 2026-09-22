@@ -26,19 +26,20 @@
 
     <main class="max-w-md mx-auto p-3 space-y-4">
 
-        <!-- 區塊 0：下次回診時間 (點擊卡片任何地方即可修改) -->
+        <!-- 區塊 0：下次回診時間 -->
         <div id="nextVisitCard" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-teal-500 transition relative">
             <div class="text-xs text-gray-500 font-bold mb-1">下次回診時間</div>
             <div id="nextVisitDisplay" class="text-base font-black text-teal-700">尚未設定下次回診時間</div>
-            <!-- 隱藏的時間選取器 -->
             <input type="datetime-local" id="nextVisitInput" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
         </div>
 
         <!-- 區塊 1：費用與次數統計 -->
         <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center">
-                <div class="text-xs text-gray-500 font-bold mb-1">累積總花費</div>
+            <!-- 可點擊切換顯示常規或額外費用 -->
+            <div id="totalCostCard" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center cursor-pointer hover:border-teal-400 transition select-none">
+                <div id="totalCostLabel" class="text-xs text-gray-500 font-bold mb-1">累積總花費 (點擊切換)</div>
                 <div class="text-xl font-black text-teal-600" id="totalCost">NT$ 0</div>
+                <div id="extraCostSubText" class="text-[10px] text-gray-400 mt-1 hidden">(額外藥費/掛號: NT$ 0)</div>
             </div>
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center">
                 <div class="text-xs text-gray-500 font-bold mb-1">總回診次數</div>
@@ -171,6 +172,9 @@
         const nextVisitRef = ref(db, 'next_visit_time');
 
         let allRecords = {};
+        let showExtraCostOnly = false; // 是否正在顯示額外藥費狀態
+        let calculatedBaseSpent = 0;
+        let calculatedExtraSpent = 0;
 
         // 預設當天日期
         document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
@@ -199,6 +203,27 @@
                 set(nextVisitRef, e.target.value);
             }
         });
+
+        // 點擊「累積總花費」卡片切換顯示模式
+        document.getElementById('totalCostCard').addEventListener('click', () => {
+            showExtraCostOnly = !showExtraCostOnly;
+            updateCostDisplay();
+        });
+
+        function updateCostDisplay() {
+            const labelEl = document.getElementById('totalCostLabel');
+            const costEl = document.getElementById('totalCost');
+
+            if (showExtraCostOnly) {
+                labelEl.innerText = '累積額外藥費/掛號';
+                costEl.innerText = `NT$ ${calculatedExtraSpent.toLocaleString()}`;
+                costEl.className = "text-xl font-black text-amber-600";
+            } else {
+                labelEl.innerText = '累積常規總花費';
+                costEl.innerText = `NT$ ${calculatedBaseSpent.toLocaleString()}`;
+                costEl.className = "text-xl font-black text-teal-600";
+            }
+        }
 
         // 快速輸入「調整」
         const treatmentsInput = document.getElementById('treatments');
@@ -245,21 +270,28 @@
             
             if (keys.length === 0) {
                 historyList.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">目前還沒有紀錄，填寫上方表單開始紀錄吧！</div>`;
-                document.getElementById('totalCost').innerText = 'NT$ 0';
+                calculatedBaseSpent = 0;
+                calculatedExtraSpent = 0;
+                updateCostDisplay();
                 document.getElementById('totalVisits').innerText = '0';
                 return;
             }
 
             keys.sort((a, b) => new Date(allRecords[b].date) - new Date(allRecords[a].date));
 
-            let totalSpent = 0;
+            calculatedBaseSpent = 0;
+            calculatedExtraSpent = 0;
 
             keys.forEach((id) => {
                 const item = allRecords[id];
                 const base = Number(item.baseFee) || 0;
                 const extra = item.hasCavity ? (Number(item.extraFee) || 0) : 0;
+                
+                // 累積費用分開計算：主費用只算常規分期費用
+                calculatedBaseSpent += base;
+                calculatedExtraSpent += extra;
+
                 const totalFee = base + extra;
-                totalSpent += totalFee;
 
                 const card = document.createElement('div');
                 card.className = "bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm space-y-2 relative";
@@ -268,7 +300,7 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <span class="text-xs font-black text-gray-800">${item.date}</span>
-                            ${item.hasCavity ? `<span class="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">💊 開藥 / 補蛀牙</span>` : ''}
+                            ${item.hasCavity ? `<span class="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">開藥 / 補蛀牙</span>` : ''}
                         </div>
                         <div class="flex items-center space-x-2">
                             <div class="text-right">
@@ -293,7 +325,7 @@
                 historyList.appendChild(card);
             });
 
-            document.getElementById('totalCost').innerText = `NT$ ${totalSpent.toLocaleString()}`;
+            updateCostDisplay();
             document.getElementById('totalVisits').innerText = keys.length;
 
             // 綁定三點選單開關
