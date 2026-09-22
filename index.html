@@ -13,116 +13,103 @@
 <body class="bg-gray-50 font-sans text-gray-900 pb-20">
 
     <!-- Header -->
-    <header class="bg-teal-700 text-white p-4 text-center font-bold text-lg tracking-wider shadow-sm sticky top-0 z-40">
+    <header class="bg-teal-700 text-white p-4 text-center font-bold text-lg tracking-widest shadow-sm sticky top-0 z-40">
         My Braces Log
     </header>
 
     <main class="max-w-md mx-auto p-4 space-y-4">
 
-        <!-- 頁籤內容 1：首頁 / 新增紀錄 (Tab 1) -->
-        <div id="tabHome" class="space-y-4">
-
-            <!-- 1. 下次回診時間卡片 (點擊可編輯) -->
-            <div id="nextVisitCard" class="bg-gradient-to-br from-teal-600 to-teal-800 text-white rounded-2xl p-4 shadow-md cursor-pointer hover:opacity-95 transition relative overflow-hidden">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="text-xs uppercase tracking-wider text-teal-100 font-bold">下次回診時間</span>
-                    <span id="countdownBadge" class="bg-white/20 text-white text-[11px] px-2 py-0.5 rounded-full font-medium">點擊修改</span>
-                </div>
-                <div class="flex items-baseline space-x-2 my-1">
-                    <div id="nextVisitDateDisplay" class="text-2xl font-black">未設定</div>
-                    <div id="nextVisitTimeDisplay" class="text-base font-semibold text-teal-100"></div>
-                </div>
-                <div id="nextVisitHint" class="text-[11px] text-teal-100 mt-2 flex items-center justify-between border-t border-teal-500/50 pt-2">
-                    <span>點擊此處可隨時更新預約時間</span>
-                    <span class="text-xs">Edit &rarr;</span>
-                </div>
+        <!-- 區塊：下次回診時間 (可隨手點擊全卡片修改) -->
+        <div id="nextAppointmentCard" class="bg-teal-800 text-white p-4 rounded-xl shadow-md cursor-pointer transition hover:bg-teal-900 active:scale-[0.99]">
+            <div class="flex justify-between items-center text-xs text-teal-200 font-medium">
+                <span>下次回診預約</span>
+                <span id="countdownBadge" class="bg-teal-700 text-teal-100 px-2 py-0.5 rounded-full text-[10px]">尚未設定</span>
             </div>
-
-            <!-- 2. 費用與次數統計 -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center">
-                    <div class="text-xs text-gray-500 font-bold mb-1">累積總花費</div>
-                    <div class="text-xl font-black text-teal-700" id="totalCost">NT$ 0</div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-center">
-                    <div class="text-xs text-gray-500 font-bold mb-1">總回診次數</div>
-                    <div class="text-xl font-black text-gray-800"><span id="totalVisits">0</span> 次</div>
-                </div>
+            <div class="mt-2 flex items-baseline justify-between">
+                <div id="nextAppointmentText" class="text-xl font-bold tracking-tight">點擊設定回診時間</div>
+                <div id="nextAppointmentTimeText" class="text-sm font-medium text-teal-200"></div>
             </div>
+        </div>
 
-            <!-- 3. 新增看診紀錄表單 -->
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 space-y-3">
-                <h3 class="font-bold text-sm text-gray-800 border-b pb-2 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-teal-600"></span> 新增看診紀錄
-                </h3>
+        <!-- 區塊：費用與次數統計 -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm text-center">
+                <div class="text-[11px] text-gray-500 font-medium mb-0.5">累積總花費</div>
+                <div class="text-lg font-bold text-teal-700" id="totalCost">NT$ 0</div>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm text-center">
+                <div class="text-[11px] text-gray-500 font-medium mb-0.5">總回診次數</div>
+                <div class="text-lg font-bold text-gray-800"><span id="totalVisits">0</span> 次</div>
+            </div>
+        </div>
+
+        <!-- TAB 1: 新增紀錄頁面 -->
+        <div id="tabAddContent" class="space-y-4">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 space-y-3">
+                <div class="font-bold text-sm text-gray-800 border-b pb-2">新增看診紀錄</div>
 
                 <form id="visitForm" class="space-y-3 text-xs">
                     
-                    <!-- 本次回診日期與基本費用 -->
+                    <!-- 日期與基本費用 -->
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block font-bold text-gray-600 mb-1">本次回診日期</label>
-                            <input type="date" id="visitDate" class="w-full border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none" required>
+                            <label class="block font-medium text-gray-600 mb-1">本次看診日期</label>
+                            <input type="date" id="visitDate" class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none" required>
                         </div>
                         <div>
-                            <label class="block font-bold text-gray-600 mb-1">常規分期費用 (元)</label>
-                            <input type="number" id="baseFee" value="3000" placeholder="3000" class="w-full border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none">
+                            <label class="block font-medium text-gray-600 mb-1">常規費用 (元)</label>
+                            <input type="number" id="baseFee" value="3000" class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none">
                         </div>
                     </div>
 
-                    <!-- 下次回診預約日期與時間 -->
-                    <div class="p-3 bg-teal-50/60 border border-teal-100 rounded-xl space-y-2">
-                        <label class="block font-bold text-teal-900">預約下次回診時間 <span class="text-red-500">*</span></label>
+                    <!-- 下次回診預約時間 (必填) -->
+                    <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-2">
+                        <label class="block font-bold text-teal-800">下次回診預約時間</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="date" id="nextVisitDateInput" class="w-full border border-teal-200 rounded-lg p-2 bg-white outline-none" required>
-                            <input type="time" id="nextVisitTimeInput" class="w-full border border-teal-200 rounded-lg p-2 bg-white outline-none" required>
+                            <input type="date" id="nextVisitDateInput" class="w-full border rounded-lg p-2 bg-white outline-none" required>
+                            <input type="time" id="nextVisitTimeInput" value="14:00" class="w-full border rounded-lg p-2 bg-white outline-none" required>
                         </div>
                     </div>
 
-                    <!-- 補蛀牙/開藥與額外費用 -->
-                    <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                    <!-- 開藥 / 補蛀牙 -->
+                    <div class="p-3 bg-teal-50/60 border border-teal-100 rounded-lg space-y-2">
                         <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="checkbox" id="hasCavity" class="w-4 h-4 text-teal-600 rounded focus:ring-teal-500">
-                            <span class="font-bold text-gray-800">當次有開藥 / 補蛀牙</span>
+                            <input type="checkbox" id="hasCavity" class="w-4 h-4 text-teal-700 rounded focus:ring-teal-600">
+                            <span class="font-medium text-teal-900">當次有開藥 / 補蛀牙</span>
                         </label>
 
                         <div id="cavityFeeBox" class="hidden pl-6 pt-1">
-                            <label class="block font-bold text-gray-700 mb-1">額外掛號 / 藥費 (元)</label>
-                            <input type="number" id="extraFee" value="200" placeholder="例如：200" class="w-full border rounded-lg p-2 bg-white outline-none">
+                            <label class="block font-medium text-teal-800 mb-1">額外掛號 / 藥費 (元)</label>
+                            <input type="number" id="extraFee" value="200" class="w-full border rounded-lg p-2 bg-white outline-none">
                         </div>
                     </div>
 
                     <!-- 診療項目 -->
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="font-bold text-gray-600">診療項目</label>
-                            <button type="button" id="btnQuickAdjust" class="bg-gray-100 text-gray-700 text-[11px] font-bold px-2 py-0.5 rounded hover:bg-gray-200 transition">
-                                + 調整
+                            <label class="font-medium text-gray-600">診療項目</label>
+                            <button type="button" id="btnQuickAdjust" class="bg-teal-100 text-teal-800 text-[11px] font-medium px-2 py-0.5 rounded hover:bg-teal-200 transition">
+                                ＋ 調整
                             </button>
                         </div>
-                        <input type="text" id="treatments" placeholder="例：調整、換橡皮筋、洗牙" class="w-full border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none">
+                        <input type="text" id="treatments" placeholder="例：調整、換橡皮筋" class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none">
                     </div>
 
                     <!-- 備註說明 -->
                     <div>
-                        <label class="block font-bold text-gray-600 mb-1">備註 / 醫囑紀錄</label>
-                        <textarea id="notes" rows="2" placeholder="例：下排右側橡皮筋要每天更換..." class="w-full border rounded-lg p-2.5 bg-gray-50 focus:bg-white outline-none resize-none"></textarea>
+                        <label class="block font-medium text-gray-600 mb-1">備註 / 醫囑紀錄</label>
+                        <textarea id="notes" rows="2" placeholder="例：橡皮筋每天替換..." class="w-full border rounded-lg p-2 bg-gray-50 focus:bg-white outline-none resize-none"></textarea>
                     </div>
 
-                    <button type="submit" class="w-full bg-teal-700 text-white font-bold py-3 rounded-xl hover:bg-teal-800 transition shadow">
+                    <button type="submit" class="w-full bg-teal-700 text-white font-bold py-3 rounded-xl hover:bg-teal-800 transition shadow-sm">
                         儲存看診紀錄
                     </button>
                 </form>
             </div>
-
         </div>
 
-        <!-- 頁籤內容 2：看診歷史紀錄 (Tab 2) -->
-        <div id="tabHistory" class="space-y-3 hidden">
-            <div class="flex justify-between items-center px-1">
-                <h3 class="font-bold text-sm text-gray-700">看診歷史紀錄</h3>
-                <span class="text-xs text-gray-400">點擊選項圖示可編輯或刪除</span>
-            </div>
+        <!-- TAB 2: 看診歷史紀錄頁面 -->
+        <div id="tabHistoryContent" class="space-y-3 hidden">
             <div id="historyList" class="space-y-3">
                 <div class="text-center py-12 text-gray-400 text-xs">載入紀錄中...</div>
             </div>
@@ -130,70 +117,71 @@
 
     </main>
 
-    <!-- 底部導覽頁籤 (Bottom Navigation) -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 max-w-md mx-auto flex justify-around py-2 shadow-lg text-xs font-bold">
-        <button id="navHome" class="flex-1 py-1 text-center text-teal-700">
-            <div>新增紀錄</div>
+    <!-- 底部 Tab 導覽列 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 z-40 max-w-md mx-auto">
+        <button id="navAdd" class="flex-1 py-1.5 text-center text-xs font-bold text-teal-700 flex flex-col items-center gap-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            新增紀錄
         </button>
-        <div class="w-[1px] bg-gray-200 my-1"></div>
-        <button id="navHistory" class="flex-1 py-1 text-center text-gray-400 hover:text-gray-700">
-            <div>歷史紀錄</div>
+        <button id="navHistory" class="flex-1 py-1.5 text-center text-xs font-bold text-gray-400 flex flex-col items-center gap-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            歷史紀錄
         </button>
     </nav>
 
-    <!-- 修改下次回診 Modal -->
-    <div id="nextVisitModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl p-5 w-full max-w-sm space-y-4">
+    <!-- 快速設定下次回診 Modal -->
+    <div id="nextAppModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl p-4 w-full max-w-sm space-y-3 shadow-xl">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-sm text-gray-800">修改下次回診時間</h3>
-                <button id="closeNextVisitModal" class="text-gray-400 hover:text-black font-bold p-1">✕</button>
+                <h3 class="font-bold text-sm text-gray-800">下次回診預約時間</h3>
+                <button id="closeNextAppModal" class="text-gray-400 hover:text-black font-bold">✕</button>
             </div>
-            <form id="nextVisitModalForm" class="space-y-3 text-xs">
+            <form id="nextAppForm" class="space-y-3 text-xs">
                 <div>
-                    <label class="font-bold text-gray-600 block mb-1">下次回診日期</label>
-                    <input type="date" id="modalNextDate" class="w-full border rounded-lg p-2.5 outline-none" required>
+                    <label class="font-medium text-gray-600 block mb-1">預約日期</label>
+                    <input type="date" id="modalNextDate" class="w-full border rounded-lg p-2" required>
                 </div>
                 <div>
-                    <label class="font-bold text-gray-600 block mb-1">下次回診時間</label>
-                    <input type="time" id="modalNextTime" class="w-full border rounded-lg p-2.5 outline-none" required>
+                    <label class="font-medium text-gray-600 block mb-1">預約時間</label>
+                    <input type="time" id="modalNextTime" class="w-full border rounded-lg p-2" required>
                 </div>
-                <button type="submit" class="w-full bg-teal-700 text-white font-bold py-2.5 rounded-xl text-sm shadow">更新預約時間</button>
+                <button type="submit" class="w-full bg-teal-700 text-white font-bold py-2.5 rounded-lg text-sm shadow-sm">儲存更新</button>
             </form>
         </div>
     </div>
 
-    <!-- 編輯歷史紀錄 Modal -->
+    <!-- 編輯紀錄 Modal (不含下次回診) -->
     <div id="editModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl p-4 w-full max-w-sm space-y-3">
+        <div class="bg-white rounded-xl p-4 w-full max-w-sm space-y-3 shadow-xl">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-sm text-gray-800">編輯紀錄</h3>
+                <h3 class="font-bold text-sm text-gray-800">修改紀錄內容</h3>
                 <button id="closeEditModal" class="text-gray-400 hover:text-black font-bold">✕</button>
             </div>
             <form id="editForm" class="space-y-3 text-xs">
                 <input type="hidden" id="editRecordId">
                 <div>
-                    <label class="font-bold text-gray-600">回診日期</label>
+                    <label class="font-medium text-gray-600">看診日期</label>
                     <input type="date" id="editDate" class="w-full border rounded-lg p-2 mt-1" required>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="font-bold text-gray-600">常規費用 (元)</label>
+                        <label class="font-medium text-gray-600">常規費用 (元)</label>
                         <input type="number" id="editBaseFee" class="w-full border rounded-lg p-2 mt-1">
                     </div>
                     <div>
-                        <label class="font-bold text-gray-600">額外費用 (元)</label>
+                        <label class="font-medium text-gray-600">額外費用 (元)</label>
                         <input type="number" id="editExtraFee" class="w-full border rounded-lg p-2 mt-1">
                     </div>
                 </div>
                 <div>
-                    <label class="font-bold text-gray-600">診療項目</label>
+                    <label class="font-medium text-gray-600">診療項目</label>
                     <input type="text" id="editTreatments" class="w-full border rounded-lg p-2 mt-1">
                 </div>
                 <div>
-                    <label class="font-bold text-gray-600">備註</label>
+                    <label class="font-medium text-gray-600">備註</label>
                     <textarea id="editNotes" rows="2" class="w-full border rounded-lg p-2 mt-1 resize-none"></textarea>
                 </div>
-                <button type="submit" class="w-full bg-teal-700 text-white font-bold py-2.5 rounded-lg text-sm shadow">更新資料</button>
+                <button type="submit" class="w-full bg-teal-700 text-white font-bold py-2.5 rounded-lg text-sm shadow-sm">更新資料</button>
             </form>
         </div>
     </div>
@@ -215,36 +203,43 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
         const bracesRef = ref(db, 'braces_records');
-        const nextVisitRef = ref(db, 'next_visit_info');
+        const nextAppRef = ref(db, 'next_appointment');
 
         let allRecords = {};
-        let currentNextVisit = { date: '', time: '' };
+        let activeMenuId = null;
 
-        // 頁籤切換邏輯
-        const tabHome = document.getElementById('tabHome');
-        const tabHistory = document.getElementById('tabHistory');
-        const navHome = document.getElementById('navHome');
+        // 初始化日期預設值
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('visitDate').value = todayStr;
+        
+        // 預設下次回診預設為 3 週後
+        const defaultNextDate = new Date();
+        defaultNextDate.setDate(defaultNextDate.getDate() + 21);
+        document.getElementById('nextVisitDateInput').value = defaultNextDate.toISOString().split('T')[0];
+
+        // 頁面 Tab 切換邏輯
+        const navAdd = document.getElementById('navAdd');
         const navHistory = document.getElementById('navHistory');
+        const tabAddContent = document.getElementById('tabAddContent');
+        const tabHistoryContent = document.getElementById('tabHistoryContent');
 
-        navHome.addEventListener('click', () => {
-            tabHome.classList.remove('hidden');
-            tabHistory.classList.add('hidden');
-            navHome.className = "flex-1 py-1 text-center text-teal-700 font-bold";
-            navHistory.className = "flex-1 py-1 text-center text-gray-400 hover:text-gray-700 font-bold";
+        navAdd.addEventListener('click', () => {
+            tabAddContent.classList.remove('hidden');
+            tabHistoryContent.classList.add('hidden');
+            navAdd.className = "flex-1 py-1.5 text-center text-xs font-bold text-teal-700 flex flex-col items-center gap-1";
+            navHistory.className = "flex-1 py-1.5 text-center text-xs font-bold text-gray-400 flex flex-col items-center gap-1";
         });
 
         navHistory.addEventListener('click', () => {
-            tabHistory.classList.remove('hidden');
-            tabHome.classList.add('hidden');
-            navHistory.className = "flex-1 py-1 text-center text-teal-700 font-bold";
-            navHome.className = "flex-1 py-1 text-center text-gray-400 hover:text-gray-700 font-bold";
+            tabHistoryContent.classList.remove('hidden');
+            tabAddContent.classList.add('hidden');
+            navHistory.className = "flex-1 py-1.5 text-center text-xs font-bold text-teal-700 flex flex-col items-center gap-1";
+            navAdd.className = "flex-1 py-1.5 text-center text-xs font-bold text-gray-400 flex flex-col items-center gap-1";
         });
 
-        // 預設日期設定
-        document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
-
-        // 快捷輸入按鈕
+        // 快速選擇「調整」
         const treatmentsInput = document.getElementById('treatments');
         document.getElementById('btnQuickAdjust').addEventListener('click', () => {
             const currentVal = treatmentsInput.value.trim();
@@ -256,58 +251,78 @@
             treatmentsInput.focus();
         });
 
-        // 補蛀牙勾選切換
+        // 開藥/補蛀牙勾選顯示
         const hasCavityCheckbox = document.getElementById('hasCavity');
         const cavityFeeBox = document.getElementById('cavityFeeBox');
         hasCavityCheckbox.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                cavityFeeBox.classList.remove('hidden');
+            cavityFeeBox.classList.toggle('hidden', !e.target.checked);
+        });
+
+        // 監聽「下次回診時間」資料
+        onValue(nextAppRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.date) {
+                updateNextAppointmentDisplay(data.date, data.time);
             } else {
-                cavityFeeBox.classList.add('hidden');
+                document.getElementById('nextAppointmentText').innerText = "未設定預約";
+                document.getElementById('nextAppointmentTimeText').innerText = "";
+                document.getElementById('countdownBadge').innerText = "點擊設定";
             }
         });
 
-        // 監聽下次回診時間
-        onValue(nextVisitRef, (snapshot) => {
-            currentNextVisit = snapshot.val() || { date: '', time: '' };
-            updateNextVisitUI();
-        });
+        function updateNextAppointmentDisplay(dateStr, timeStr) {
+            const textEl = document.getElementById('nextAppointmentText');
+            const timeEl = document.getElementById('nextAppointmentTimeText');
+            const badgeEl = document.getElementById('countdownBadge');
 
-        function updateNextVisitUI() {
-            const dateDisplay = document.getElementById('nextVisitDateDisplay');
-            const timeDisplay = document.getElementById('nextVisitTimeDisplay');
+            textEl.innerText = dateStr;
+            timeEl.innerText = timeStr || '';
 
-            if (currentNextVisit.date) {
-                dateDisplay.innerText = currentNextVisit.date;
-                timeDisplay.innerText = currentNextVisit.time || '';
+            // 計算倒數天數
+            const targetDate = new Date(dateStr);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            targetDate.setHours(0,0,0,0);
+
+            const diffTime = targetDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                badgeEl.innerText = "今天看診";
+                badgeEl.className = "bg-amber-500 text-white px-2 py-0.5 rounded-full text-[10px]";
+            } else if (diffDays > 0) {
+                badgeEl.innerText = `還有 ${diffDays} 天`;
+                badgeEl.className = "bg-teal-700 text-teal-100 px-2 py-0.5 rounded-full text-[10px]";
             } else {
-                dateDisplay.innerText = '未設定';
-                timeDisplay.innerText = '';
+                badgeEl.innerText = "已過期";
+                badgeEl.className = "bg-gray-600 text-gray-200 px-2 py-0.5 rounded-full text-[10px]";
             }
+
+            // 同步 Modal 數值
+            document.getElementById('modalNextDate').value = dateStr;
+            document.getElementById('modalNextTime').value = timeStr || '14:00';
         }
 
-        // 點擊下次回診卡片彈出修改視窗
-        document.getElementById('nextVisitCard').addEventListener('click', () => {
-            document.getElementById('modalNextDate').value = currentNextVisit.date || '';
-            document.getElementById('modalNextTime').value = currentNextVisit.time || '10:00';
-            document.getElementById('nextVisitModal').classList.remove('hidden');
+        // 點擊頂部卡片直接打開預約修改 Modal
+        document.getElementById('nextAppointmentCard').addEventListener('click', () => {
+            document.getElementById('nextAppModal').classList.remove('hidden');
         });
 
-        document.getElementById('closeNextVisitModal').addEventListener('click', () => {
-            document.getElementById('nextVisitModal').classList.add('hidden');
+        document.getElementById('closeNextAppModal').addEventListener('click', () => {
+            document.getElementById('nextAppModal').classList.add('hidden');
         });
 
-        document.getElementById('nextVisitModalForm').addEventListener('submit', (e) => {
+        document.getElementById('nextAppForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const date = document.getElementById('modalNextDate').value;
             const time = document.getElementById('modalNextTime').value;
 
-            set(nextVisitRef, { date, time }).then(() => {
-                document.getElementById('nextVisitModal').classList.add('hidden');
+            set(nextAppRef, { date, time }).then(() => {
+                document.getElementById('nextAppModal').classList.add('hidden');
             });
         });
 
-        // 監聽歷史看診紀錄
+        // 監聽看診歷史資料
         onValue(bracesRef, (snapshot) => {
             allRecords = snapshot.val() || {};
             renderHistory();
@@ -320,7 +335,7 @@
             const keys = Object.keys(allRecords);
             
             if (keys.length === 0) {
-                historyList.innerHTML = `<div class="text-center py-12 text-gray-400 text-xs">目前還沒有看診紀錄</div>`;
+                historyList.innerHTML = `<div class="text-center py-12 text-gray-400 text-xs">目前尚無紀錄</div>`;
                 document.getElementById('totalCost').innerText = 'NT$ 0';
                 document.getElementById('totalVisits').innerText = '0';
                 return;
@@ -338,30 +353,33 @@
                 totalSpent += totalFee;
 
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-2 relative";
+                card.className = "bg-white p-3.5 rounded-xl border border-gray-200 shadow-sm space-y-2 relative";
                 
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
-                            <span class="text-xs font-bold text-gray-900">${item.date}</span>
-                            ${item.hasCavity ? `<span class="ml-2 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] px-1.5 py-0.5 rounded font-medium">開藥 / 補蛀牙</span>` : ''}
+                            <span class="text-xs font-bold text-gray-800">${item.date}</span>
+                            ${item.hasCavity ? `<span class="ml-2 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] px-1.5 py-0.5 rounded font-medium">開藥 / 補蛀牙</span>` : ''}
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-bold text-teal-700">NT$ ${totalFee.toLocaleString()}</span>
-                            
-                            <!-- 隱藏式選單 (三點按鈕) -->
-                            <div class="relative group">
-                                <button class="text-gray-400 hover:text-gray-700 p-1 text-sm font-bold leading-none">⋮</button>
-                                <div class="hidden group-hover:flex flex-col absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1 w-16 text-center text-[11px]">
-                                    <button data-id="${id}" class="edit-btn py-1 hover:bg-gray-50 text-gray-700 font-medium">編輯</button>
-                                    <button data-id="${id}" class="delete-btn py-1 hover:bg-gray-50 text-red-600 font-medium border-t border-gray-100">刪除</button>
-                                </div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-right">
+                                <span class="text-sm font-bold text-teal-700">NT$ ${totalFee.toLocaleString()}</span>
                             </div>
+                            <!-- 三點隱藏式選單按鈕 -->
+                            <button data-id="${id}" class="menu-btn text-gray-400 hover:text-gray-700 p-1 rounded-lg">
+                                <svg class="w-4 h-4 pointer-events-none" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                            </button>
                         </div>
                     </div>
 
-                    ${item.treatments ? `<div class="text-xs text-gray-700 font-medium bg-gray-50 p-2 rounded-lg">診治：${item.treatments}</div>` : ''}
-                    ${item.notes ? `<div class="text-xs text-gray-500 italic pl-1">備註：${item.notes}</div>` : ''}
+                    ${item.treatments ? `<div class="text-xs text-gray-700 font-medium bg-gray-50 p-2 rounded-lg">${item.treatments}</div>` : ''}
+                    ${item.notes ? `<div class="text-xs text-gray-500 pl-1">${item.notes}</div>` : ''}
+
+                    <!-- 隱藏懸浮選單 -->
+                    <div id="popover-${id}" class="hidden absolute right-3 top-10 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1 text-xs w-20">
+                        <button data-id="${id}" class="edit-btn w-full text-left px-3 py-1.5 text-gray-700 hover:bg-gray-50">修改</button>
+                        <button data-id="${id}" class="delete-btn w-full text-left px-3 py-1.5 text-red-600 hover:bg-red-50">刪除</button>
+                    </div>
                 `;
 
                 historyList.appendChild(card);
@@ -370,33 +388,57 @@
             document.getElementById('totalCost').innerText = `NT$ ${totalSpent.toLocaleString()}`;
             document.getElementById('totalVisits').innerText = keys.length;
 
-            // 綁定編輯與刪除
+            // 綁定選單開關事件
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.getAttribute('data-id');
+                    const pop = document.getElementById(`popover-${id}`);
+                    
+                    // 關閉其他開啟的選單
+                    document.querySelectorAll('[id^="popover-"]').forEach(el => {
+                        if (el.id !== `popover-${id}`) el.classList.add('hidden');
+                    });
+
+                    pop.classList.toggle('hidden');
+                });
+            });
+
+            // 點擊其他地方關閉選單
+            document.addEventListener('click', () => {
+                document.querySelectorAll('[id^="popover-"]').forEach(el => el.classList.add('hidden'));
+            });
+
+            // 編輯與刪除觸發事件
             document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => openEditModal(e.target.getAttribute('data-id')));
+                btn.addEventListener('click', (e) => {
+                    openEditModal(e.target.getAttribute('data-id'));
+                });
             });
 
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const id = e.target.getAttribute('data-id');
-                    if (confirm('確定要刪除這筆看診紀錄嗎？')) {
+                    if (confirm('確定刪除此紀錄？')) {
                         remove(ref(db, `braces_records/${id}`));
                     }
                 });
             });
         }
 
-        // 新增紀錄表單送出
+        // 送出新增紀錄
         document.getElementById('visitForm').addEventListener('submit', (e) => {
             e.preventDefault();
 
             const date = document.getElementById('visitDate').value;
             const baseFee = document.getElementById('baseFee').value || 0;
-            const nextVisitDate = document.getElementById('nextVisitDateInput').value;
-            const nextVisitTime = document.getElementById('nextVisitTimeInput').value;
             const hasCavity = document.getElementById('hasCavity').checked;
             const extraFee = hasCavity ? (document.getElementById('extraFee').value || 0) : 0;
             const treatments = document.getElementById('treatments').value.trim();
             const notes = document.getElementById('notes').value.trim();
+
+            const nextDate = document.getElementById('nextVisitDateInput').value;
+            const nextTime = document.getElementById('nextVisitTimeInput').value;
 
             const newRecord = {
                 date,
@@ -408,25 +450,23 @@
                 createdAt: Date.now()
             };
 
-            // 1. 儲存看診紀錄
+            // 同時新增紀錄與更新最上方的下次回診時間
             push(bracesRef, newRecord).then(() => {
-                // 2. 同步更新頂部下次回診時間
-                set(nextVisitRef, { date: nextVisitDate, time: nextVisitTime });
-
-                // 重置欄位
+                return set(nextAppRef, { date: nextDate, time: nextTime });
+            }).then(() => {
+                // 重置表單
                 document.getElementById('treatments').value = '';
                 document.getElementById('notes').value = '';
                 document.getElementById('hasCavity').checked = false;
                 cavityFeeBox.classList.add('hidden');
-                document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
-                document.getElementById('nextVisitDateInput').value = '';
-                document.getElementById('nextVisitTimeInput').value = '';
+                document.getElementById('visitDate').value = todayStr;
 
-                alert('看診紀錄與下次回診時間已成功儲存！');
+                // 自動切換至歷史紀錄頁面
+                navHistory.click();
             });
         });
 
-        // 編輯 Modal
+        // 編輯 Modal 邏輯
         function openEditModal(id) {
             const item = allRecords[id];
             if (!item) return;
