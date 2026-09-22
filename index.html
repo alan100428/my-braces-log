@@ -6,8 +6,6 @@
     <title>My Braces Log</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .bg-teal-main { background-color: #0D9488; }
-        .text-teal-main { color: #0D9488; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -16,46 +14,17 @@
 
     <!-- Header -->
     <header class="bg-teal-600 text-white p-4 text-center font-black text-xl tracking-widest shadow-md sticky top-0 z-40">
-        🦷 My Braces Log
+        My Braces Log
     </header>
 
     <main class="max-w-md mx-auto p-3 space-y-4">
 
-        <!-- 區塊 0：下次回診日期與時間提醒 -->
-        <div class="bg-gradient-to-r from-teal-500 to-emerald-600 text-white rounded-xl p-4 shadow-sm space-y-2">
-            <div class="flex justify-between items-center">
-                <span class="text-xs font-bold tracking-wider opacity-90">🗓️ 下次回診時間</span>
-                <button id="btnToggleNextVisit" class="text-[11px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-md transition font-medium">
-                    修改設定
-                </button>
-            </div>
-            
-            <!-- 顯示下次回診時間 -->
-            <div id="nextVisitDisplay" class="text-lg font-black tracking-wide">
-                尚未設定下次回診時間
-            </div>
-
-            <!-- 設定下次回診時間表單 (預設隱藏或可展開) -->
-            <form id="nextVisitForm" class="hidden pt-2 border-t border-white/20 space-y-2 text-xs text-gray-800">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-white font-bold mb-1">日期</label>
-                        <input type="date" id="nextDate" class="w-full border rounded-lg p-2 bg-white outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-white font-bold mb-1">時間</label>
-                        <input type="time" id="nextTime" class="w-full border rounded-lg p-2 bg-white outline-none">
-                    </div>
-                </div>
-                <div class="flex gap-2 pt-1">
-                    <button type="submit" class="flex-1 bg-white text-teal-700 font-bold py-2 rounded-lg hover:bg-gray-100 transition shadow">
-                        儲存時間
-                    </button>
-                    <button type="button" id="btnClearNextVisit" class="bg-red-500/80 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-lg transition">
-                        清除
-                    </button>
-                </div>
-            </form>
+        <!-- 區塊 0：下次回診時間 (點擊卡片任何地方即可修改) -->
+        <div id="nextVisitCard" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-teal-500 transition relative">
+            <div class="text-xs text-gray-500 font-bold mb-1">下次回診時間</div>
+            <div id="nextVisitDisplay" class="text-base font-black text-teal-700">尚未設定下次回診時間</div>
+            <!-- 隱藏的時間選取器 -->
+            <input type="datetime-local" id="nextVisitInput" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
         </div>
 
         <!-- 區塊 1：費用與次數統計 -->
@@ -107,7 +76,6 @@
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <label class="font-bold text-gray-600">診療項目</label>
-                        <!-- 快速選擇標籤 -->
                         <div class="flex gap-1">
                             <button type="button" id="btnQuickAdjust" class="bg-teal-100 text-teal-800 text-[11px] font-bold px-2 py-0.5 rounded-md hover:bg-teal-200 transition">
                                 ＋ 調整
@@ -180,7 +148,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Firebase 配置 (與衣櫥專案共用同一專案，分區儲存)
         const firebaseConfig = {
             apiKey: "AIzaSyBwF163OMp-1sPCV9xHsORYemEy97YPCkI",
             authDomain: "mywardrobe-c7e74.firebaseapp.com",
@@ -193,59 +160,40 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        // 設定專屬於牙套紀錄的資料節點
         const bracesRef = ref(db, 'braces_records');
-        const nextVisitRef = ref(db, 'braces_next_visit');
+        const nextVisitRef = ref(db, 'next_visit_time');
 
         let allRecords = {};
 
-        // 設定預設日期為今天
+        // 預設當天日期
         document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
 
-        // --- 下次回診時間邏輯 ---
-        const nextVisitDisplay = document.getElementById('nextVisitDisplay');
-        const nextVisitForm = document.getElementById('nextVisitForm');
-        const btnToggleNextVisit = document.getElementById('btnToggleNextVisit');
-
-        btnToggleNextVisit.addEventListener('click', () => {
-            nextVisitForm.classList.toggle('hidden');
-        });
-
-        // 監聽下次回診資料
+        // 監聽下次回診時間
         onValue(nextVisitRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.date) {
-                const timeStr = data.time ? ` ${data.time}` : '';
-                nextVisitDisplay.innerText = `${data.date}${timeStr}`;
-                document.getElementById('nextDate').value = data.date;
-                document.getElementById('nextTime').value = data.time || '';
+            const val = snapshot.val();
+            const displayEl = document.getElementById('nextVisitDisplay');
+            if (val) {
+                const dt = new Date(val);
+                const year = dt.getFullYear();
+                const month = String(dt.getMonth() + 1).padStart(2, '0');
+                const date = String(dt.getDate()).padStart(2, '0');
+                const hours = String(dt.getHours()).padStart(2, '0');
+                const minutes = String(dt.getMinutes()).padStart(2, '0');
+                displayEl.innerText = `${year}/${month}/${date} ${hours}:${minutes}`;
+                document.getElementById('nextVisitInput').value = val;
             } else {
-                nextVisitDisplay.innerText = '尚未設定下次回診時間';
-                document.getElementById('nextDate').value = '';
-                document.getElementById('nextTime').value = '';
+                displayEl.innerText = '尚未設定下次回診時間';
             }
         });
 
-        // 儲存下次回診時間
-        nextVisitForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const date = document.getElementById('nextDate').value;
-            const time = document.getElementById('nextTime').value;
-
-            set(nextVisitRef, { date, time }).then(() => {
-                nextVisitForm.classList.add('hidden');
-            });
+        // 修改下次回診時間
+        document.getElementById('nextVisitInput').addEventListener('change', (e) => {
+            if (e.target.value) {
+                set(nextVisitRef, e.target.value);
+            }
         });
 
-        // 清除下次回診時間
-        document.getElementById('btnClearNextVisit').addEventListener('click', () => {
-            set(nextVisitRef, null).then(() => {
-                nextVisitForm.classList.add('hidden');
-            });
-        });
-
-        // --- 快速選擇與表單邏輯 ---
+        // 快速輸入「調整」
         const treatmentsInput = document.getElementById('treatments');
         document.getElementById('btnQuickAdjust').addEventListener('click', () => {
             const currentVal = treatmentsInput.value.trim();
@@ -257,7 +205,7 @@
             treatmentsInput.focus();
         });
 
-        // 勾選開藥/補蛀牙切換金額輸入框
+        // 開藥/補蛀牙展開選單
         const hasCavityCheckbox = document.getElementById('hasCavity');
         const cavityFeeBox = document.getElementById('cavityFeeBox');
         hasCavityCheckbox.addEventListener('change', (e) => {
@@ -268,13 +216,20 @@
             }
         });
 
-        // 監聽 Firebase 歷史資料
+        // 監聽歷史紀錄
         onValue(bracesRef, (snapshot) => {
             allRecords = snapshot.val() || {};
             renderHistory();
         });
 
-        // 渲染歷程與統計
+        // 點擊頁面其他地方關閉三點選單
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.action-menu-container')) {
+                document.querySelectorAll('.action-menu').forEach(el => el.classList.add('hidden'));
+            }
+        });
+
+        // 渲染歷史紀錄
         function renderHistory() {
             const historyList = document.getElementById('historyList');
             historyList.innerHTML = '';
@@ -288,7 +243,6 @@
                 return;
             }
 
-            // 依據日期從新到舊排序
             keys.sort((a, b) => new Date(allRecords[b].date) - new Date(allRecords[a].date));
 
             let totalSpent = 0;
@@ -309,44 +263,63 @@
                             <span class="text-xs font-black text-gray-800">${item.date}</span>
                             ${item.hasCavity ? `<span class="ml-2 bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-bold">💊 開藥 / 補蛀牙</span>` : ''}
                         </div>
-                        <div class="text-right">
-                            <span class="text-sm font-black text-teal-600">NT$ ${totalFee.toLocaleString()}</span>
-                            ${item.hasCavity ? `<div class="text-[9px] text-gray-400">(含掛號/藥費 $${extra})</div>` : ''}
+                        <div class="flex items-center space-x-2">
+                            <div class="text-right">
+                                <span class="text-sm font-black text-teal-600">NT$ ${totalFee.toLocaleString()}</span>
+                                ${item.hasCavity ? `<div class="text-[9px] text-gray-400">(含掛號/藥費 $${extra})</div>` : ''}
+                            </div>
+                            <!-- 三點選單容器 -->
+                            <div class="relative action-menu-container">
+                                <button data-id="${id}" class="menu-toggle-btn p-1 text-gray-400 hover:text-gray-700 font-bold leading-none text-base">⋮</button>
+                                <div id="menu-${id}" class="action-menu hidden absolute right-0 top-6 w-20 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1 text-center text-xs">
+                                    <button data-id="${id}" class="edit-btn w-full py-1.5 text-gray-700 hover:bg-gray-100">編輯</button>
+                                    <button data-id="${id}" class="delete-btn w-full py-1.5 text-red-500 hover:bg-gray-100">刪除</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     ${item.treatments ? `<div class="text-xs text-gray-700 font-bold bg-gray-50 p-2 rounded-lg">診治：${item.treatments}</div>` : ''}
                     ${item.notes ? `<div class="text-xs text-gray-500 italic pl-1">備註：${item.notes}</div>` : ''}
-
-                    <div class="flex justify-end space-x-3 text-[11px] pt-1 border-t border-gray-100">
-                        <button data-id="${id}" class="edit-btn text-gray-500 hover:text-black font-bold">編輯</button>
-                        <button data-id="${id}" class="delete-btn text-red-500 hover:underline">刪除</button>
-                    </div>
                 `;
 
                 historyList.appendChild(card);
             });
 
-            // 更新統計金額與次數
             document.getElementById('totalCost').innerText = `NT$ ${totalSpent.toLocaleString()}`;
             document.getElementById('totalVisits').innerText = keys.length;
 
-            // 綁定編輯與刪除事件
+            // 綁定三點選單開關
+            document.querySelectorAll('.menu-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = e.target.getAttribute('data-id');
+                    const targetMenu = document.getElementById(`menu-${id}`);
+                    document.querySelectorAll('.action-menu').forEach(el => {
+                        if (el !== targetMenu) el.classList.add('hidden');
+                    });
+                    targetMenu.classList.toggle('hidden');
+                });
+            });
+
+            // 綁定編輯與刪除
             document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => openEditModal(e.target.getAttribute('data-id')));
+                btn.addEventListener('click', (e) => {
+                    openEditModal(e.target.getAttribute('data-id'));
+                });
             });
 
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const id = e.target.getAttribute('data-id');
-                    if (confirm('確定要刪除這筆看診紀錄嗎？')) {
+                    if (confirm('確定要刪除這筆紀錄嗎？')) {
                         remove(ref(db, `braces_records/${id}`));
                     }
                 });
             });
         }
 
-        // 送出新增紀錄
+        // 送出表單
         document.getElementById('visitForm').addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -368,7 +341,6 @@
             };
 
             push(bracesRef, newRecord).then(() => {
-                // 重置部分表單欄位
                 document.getElementById('treatments').value = '';
                 document.getElementById('notes').value = '';
                 document.getElementById('hasCavity').checked = false;
@@ -377,7 +349,7 @@
             });
         });
 
-        // 編輯 Modal 邏輯
+        // 編輯 Modal
         function openEditModal(id) {
             const item = allRecords[id];
             if (!item) return;
